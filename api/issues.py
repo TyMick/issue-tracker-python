@@ -153,7 +153,7 @@ def update_issue(project_id):
         query += " open = ?,"
         parameters.append(updates["open"] == "true")
 
-    query += " created_on = CURRENT_TIMESTAMP WHERE project_id == ? AND _id == ?"
+    query += " updated_on = CURRENT_TIMESTAMP WHERE project_id == ? AND _id == ?"
     parameters.append(project_id)
     parameters.append(issue_id)
 
