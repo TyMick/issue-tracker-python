@@ -122,7 +122,55 @@ def add_new_issue(project_id):
 
 
 def update_issue(project_id):
-    pass
+    issue_id = request.form.get("_id")
+    if not issue_id:
+        return "No issue _id sent"
+
+    updates = dict(request.form)
+    del updates["_id"]
+    if len(updates) == 0:
+        return "No updated field sent"
+
+    query = "UPDATE issue SET"
+    parameters = []
+
+    if updates.get("issue_title"):
+        query += " issue_title = ?,"
+        parameters.append(updates["issue_title"])
+    if updates.get("issue_text"):
+        query += " issue_text = ?,"
+        parameters.append(updates["issue_text"])
+    if updates.get("created_by"):
+        query += " created_by = ?,"
+        parameters.append(updates["created_by"])
+    if updates.get("assigned_to"):
+        query += " assigned_to = ?,"
+        parameters.append(updates["assigned_to"])
+    if updates.get("status_text"):
+        query += " status_text = ?,"
+        parameters.append(updates["status_text"])
+    if updates.get("open"):
+        query += " open = ?,"
+        parameters.append(updates["open"] == "true")
+
+    query += " created_on = CURRENT_TIMESTAMP WHERE project_id == ? AND _id == ?"
+    parameters.append(project_id)
+    parameters.append(issue_id)
+
+    try:
+        db = get_db()
+        c = db.cursor()
+        c.execute(query, tuple(parameters))
+        db.commit()
+
+        c.execute("SELECT changes() AS rows_updated")
+        if c.fetchone()["rows_updated"] > 0:
+            return "Successfully updated"
+        else:
+            return f"_id {issue_id} does not exist"
+
+    except:
+        return "Database error"
 
 
 def delete_issue(project_id):
