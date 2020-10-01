@@ -174,4 +174,24 @@ def update_issue(project_id):
 
 
 def delete_issue(project_id):
-    pass
+    issue_id = request.form.get("_id")
+    if not issue_id:
+        return "No issue _id sent"
+
+    try:
+        db = get_db()
+        c = db.cursor()
+        c.execute(
+            "DELETE FROM issue WHERE project_id == ? AND _id == ?",
+            (project_id, issue_id),
+        )
+        db.commit()
+
+        c.execute("SELECT changes() AS rows_deleted")
+        if c.fetchone()["rows_deleted"] > 0:
+            return f"Deleted {issue_id}"
+        else:
+            return f"_id {issue_id} does not exist"
+
+    except:
+        return f"Could not delete {issue_id}"
