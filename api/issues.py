@@ -1,11 +1,64 @@
-from flask import request
+from flask import request, jsonify
 from database import get_db
 from datetime import datetime, timezone
 import nanoid
 
 
 def get_issues(project_id):
-    pass
+    query = """
+        SELECT
+            _id,
+            issue_title,
+            issue_text,
+            created_by,
+            assigned_to,
+            status_text,
+            strftime("%Y-%m-%dT%H:%M:%SZ", created_on) AS created_on,
+            strftime("%Y-%m-%dT%H:%M:%SZ", updated_on) AS updated_on,
+            open
+        FROM issue
+        WHERE project_id == ?
+        """
+    parameters = [project_id]
+
+    if request.args.get("_id"):
+        query += " AND _id == ?"
+        parameters.append(request.args["_id"])
+    if request.args.get("issue_title"):
+        query += " AND issue_title == ?"
+        parameters.append(request.args["issue_title"])
+    if request.args.get("issue_text"):
+        query += " AND issue_text == ?"
+        parameters.append(request.args["issue_text"])
+    if request.args.get("created_by"):
+        query += " AND created_by == ?"
+        parameters.append(request.args["created_by"])
+    if request.args.get("assigned_to"):
+        query += " AND assigned_to == ?"
+        parameters.append(request.args["assigned_to"])
+    if request.args.get("status_text"):
+        query += " AND status_text == ?"
+        parameters.append(request.args["status_text"])
+    if request.args.get("created_on"):
+        query += " AND created_on == datetime(?)"
+        parameters.append(request.args["created_on"])
+    if request.args.get("updated_on"):
+        query += " AND updated_on == datetime(?)"
+        parameters.append(request.args["updated_on"])
+    if request.args.get("open"):
+        query += " AND open == ?"
+        parameters.append(request.args["open"] == "true")
+
+    query += " ORDER BY updated_on DESC"
+
+    try:
+        db = get_db()
+        c = db.cursor()
+        c.execute(query, tuple(parameters))
+        return jsonify(c.fetchall())
+
+    except:
+        return "Database error"
 
 
 def add_new_issue(project_id):
