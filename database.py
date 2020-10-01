@@ -47,8 +47,8 @@ def init_db():
             open BOOLEAN NOT NULL DEFAULT TRUE
         ) WITHOUT ROWID;
 
-        CREATE UNIQUE INDEX IF NOT EXISTS thread_idx ON issue(project_id, _id);
+        CREATE UNIQUE INDEX IF NOT EXISTS issue_idx ON issue(project_id, _id);
+        CREATE INDEX IF NOT EXISTS issue_time ON issue(project_id, updated_on);
         """
-        # Add indices
     )
     db.commit()
